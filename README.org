@@ -1,1 +1,8 @@
 * Experimenting Apache Camel and Clojure
+
+* License
+
+Copyright (C) 2012 apache-camel-clojure
+
+Distributed under the Eclipse Public License, the same as Clojure.
+
