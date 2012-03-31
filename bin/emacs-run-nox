@@ -1,0 +1,5 @@
+#!/bin/bash -xe
+
+cd $(dirname $0)
+emacs -nw -fs -rv -e clojure-jack-in
+
