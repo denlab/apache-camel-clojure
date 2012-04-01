@@ -27,11 +27,14 @@
               (process [exchange]
                 (log (str msg ":" exchange)))))
 
+(defn path
+  [name] (str "file:/home/denis/tmp/camel/c02/" name))
+
 (comment
   (def route (proxy [RouteBuilder] []
                (configure []
                  (.. this
-                     (from "file:/home/denis/tmp/camel/c02/in")
+                     (from (path "01-in"))
                      (process (make-log-proc "before jms queue: "))
                      (to "jms:incomingOrders"))
                  (.. this
@@ -39,12 +42,13 @@
                      choice
                      (when (-> this
                                (.header "CamelFileName")
-                               (.endsWith ".xml")))
-                     (to "file:/home/denis/tmp/camel/c02/out-xml")
+                               (.endsWith ".xml")))       (to (path "02-out-xml"))
                      (when (-> this
                                (.header "CamelFileName")
-                               (.regex "^.*(csv|csl)$")))
-                     (to "file:/home/denis/tmp/camel/c02/out-csv")))))
+                               (.regex "^.*(csv|csl)$"))) (to (path "03-out-csv"))
+                     otherwise (to (path "04-out-bad")) stop
+                     end
+                     (to (path "05-out-continued"))))))
 
   (def connFact (ActiveMQConnectionFactory. "vm://localhost"))
   
