@@ -58,15 +58,11 @@
 (defn make-client-recip "create a processor that set the production to the receipient list, if the customer is gold"
   [gold-cust] (proxy [Processor] []
                 (process [exchange]
-                  (do (log "---> make-client")
-                      (try
-                        (let [r (if (= gold-cust (.. exchange getIn (getHeader "customer" String)))
-                                  (str (:out-acc paths) "," (:out-pro paths))
-                                  (:out-acc paths))]
-                          (do (log (str "client recip: " r))
-                              (.. exchange getIn (setHeader "recipients"
-                                                            r))))
-                        (catch Exception e (log (with-out-str (print-stack-trace e)))))))))
+                  (let [r (if (= gold-cust (.. exchange getIn (getHeader "customer" String)))
+                            (str (:out-acc paths) "," (:out-pro paths))
+                            (:out-acc paths))]
+                    (.. exchange getIn (setHeader "recipients"
+                                                  r))))))
 
 (comment
 
