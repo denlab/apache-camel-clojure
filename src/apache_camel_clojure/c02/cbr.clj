@@ -43,7 +43,7 @@
                      (to "file:/home/denis/tmp/camel/c02/out-xml")
                      (when (-> this
                                (.header "CamelFileName")
-                               (.endsWith ".csv")))
+                               (.regex "^.*(csv|csl)$")))
                      (to "file:/home/denis/tmp/camel/c02/out-csv")))))
 
   (def connFact (ActiveMQConnectionFactory. "vm://localhost"))
