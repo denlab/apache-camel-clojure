@@ -1,4 +1,4 @@
-(ns apache-camel-clojure.c01
+(ns apache-camel-clojure.c01.c01
   (use [clojure.repl :only [doc]])
   (import [org.apache.camel         CamelContext]
           [org.apache.camel.builder RouteBuilder]

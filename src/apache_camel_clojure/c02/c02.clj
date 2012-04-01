@@ -1,4 +1,4 @@
-(ns apache-camel-clojure.c02
+(ns apache-camel-clojure.c02.c02
   (use [clojure.repl         :only [doc]]
        [clojure.java.javadoc :only [javadoc add-remote-javadoc]]
        [clojure.pprint       :only [pprint]]
