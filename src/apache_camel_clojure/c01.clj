@@ -4,23 +4,25 @@
           [org.apache.camel.builder RouteBuilder]
           [org.apache.camel.impl    DefaultCamelContext]))
 
-(def route (proxy [RouteBuilder] []
-             (configure []
-               (.. this
-                   (from "file:/home/denis/tmp/camel/c01/in")
-                   (to   "file:/home/denis/tmp/camel/c01/out")))))
+(comment
 
-(def ctx (DefaultCamelContext.))
+  (def route (proxy [RouteBuilder] []
+              (configure []
+                (.. this
+                    (from "file:/home/denis/tmp/camel/c01/in")
+                    (to   "file:/home/denis/tmp/camel/c01/out")))))
 
-(doto ctx
-  (.addRoutes route)
-  (.start))
+  (def ctx (DefaultCamelContext.))
 
-;; play with it ...
+  (doto ctx
+    (.addRoutes route)
+    (.start))
 
-;; then stop it:
+  ;; play with it ...
 
-(.stop ctx)
+  ;; then stop it:
+
+  (.stop ctx))
 
 
 
