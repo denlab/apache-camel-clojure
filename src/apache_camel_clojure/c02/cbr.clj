@@ -12,7 +12,8 @@
           [org.apache.camel.component.jms JmsComponent]
           [org.apache.camel               CamelContext Processor]
           [org.apache.camel.builder       RouteBuilder]
-          [org.apache.camel.impl          DefaultCamelContext]))
+          [org.apache.camel.impl          DefaultCamelContext]
+          [org.apache.camel.model         MulticastDefinition]))
 
 ;;
 ;; Usage:
@@ -30,7 +31,7 @@
   [name] (str "file:" camel-path "/c02/" name))
 
 (def paths
-  (let [n [:in :out-xml :out-csv :out-bad :out-nex]]
+  (let [n [:in :out-xml :out-csv :out-bad :out-nex :out-pro :out-acc]]
     (zipmap n
             (map-indexed #(path (.replace (str % %2) \: \-))
                          n))))
@@ -57,7 +58,7 @@
                (configure []
                  (.. this
                      (from (:in paths))
-                     (process (make-log-proc "before jms queue: "))
+                     (process (make-log-proc "\nbefore jms queue: "))
                      (to "jms:incomingOrders"))
                  (.. this
                      (from "jms:incomingOrders")
@@ -70,7 +71,17 @@
                                (.regex "^.*(csv|csl)$"))) (to (:out-csv paths))
                      otherwise (to (:out-bad paths)) stop
                      end
-                     (to (:out-nex paths))))))
+                     (to (:out-nex paths)))
+                 (.. this
+                     (from (:out-xml paths))
+                     (filter (.xpath this "/order[not(@test)]"))
+                     multicast (to (to-array [(:out-pro paths) (:out-acc paths)])))
+                 (.. this
+                     (from (:out-pro paths))
+                     (process (make-log-proc "production: received XML")))
+                 (.. this
+                     (from (:out-acc paths))
+                     (process (make-log-proc "accounting: received XML"))))))
 
   (def connFact (ActiveMQConnectionFactory. "vm://localhost"))
   
