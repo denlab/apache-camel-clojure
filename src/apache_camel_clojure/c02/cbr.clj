@@ -4,6 +4,8 @@
        [clojure.java.javadoc :only [javadoc add-remote-javadoc]]
        [clojure.pprint       :only [pprint]]
        [clojure.reflect      :only [reflect]]
+       [clojure.xml          :only [emit parse]]
+       [clojure.java.shell   :only [sh]]
        [apache-camel-clojure.core])
   (import [javax.jms                      ConnectionFactory]
           [org.apache.activemq            ActiveMQConnectionFactory]
@@ -22,19 +24,39 @@
 ;; - Go to the following form: C-M-f
 ;; - and execute it
 
+(def camel-path "/home/denis/tmp/camel")
+
+(defn path
+  [name] (str "file:" camel-path "/c02/" name))
+
+(def paths
+  (let [n [:in :out-xml :out-csv :out-bad :out-nex]]
+    (zipmap n
+            (map-indexed #(path (.replace (str % %2) \: \-))
+                         n))))
+
+(defn new-input-msg-str
+  [test?] (with-out-str
+            (emit {:tag     :order
+                   :attrs   (conj {:name "motor", :amount "1", :customer "foo"}
+                                  (if test? [:test "true"]))
+                   :content nil})))
+
+(defn new-input-msg
+  ([]      (new-input-msg false))
+  ([test?] (spit (str (:in paths) "/" (System/currentTimeMillis) ".xml")
+                 (new-input-msg-str test?))))
+
 (defn make-log-proc
   [msg] (proxy [Processor] []
               (process [exchange]
                 (log (str msg ":" exchange)))))
 
-(defn path
-  [name] (str "file:/home/denis/tmp/camel/c02/" name))
-
 (comment
   (def route (proxy [RouteBuilder] []
                (configure []
                  (.. this
-                     (from (path "01-in"))
+                     (from (:in paths))
                      (process (make-log-proc "before jms queue: "))
                      (to "jms:incomingOrders"))
                  (.. this
@@ -42,13 +64,13 @@
                      choice
                      (when (-> this
                                (.header "CamelFileName")
-                               (.endsWith ".xml")))       (to (path "02-out-xml"))
+                               (.endsWith ".xml")))       (to (:out-xml paths))
                      (when (-> this
                                (.header "CamelFileName")
-                               (.regex "^.*(csv|csl)$"))) (to (path "03-out-csv"))
-                     otherwise (to (path "04-out-bad")) stop
+                               (.regex "^.*(csv|csl)$"))) (to (:out-csv paths))
+                     otherwise (to (:out-bad paths)) stop
                      end
-                     (to (path "05-out-continued"))))))
+                     (to (:out-nex paths))))))
 
   (def connFact (ActiveMQConnectionFactory. "vm://localhost"))
   
